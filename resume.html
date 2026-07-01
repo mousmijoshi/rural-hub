@@ -30,48 +30,50 @@
       <h2>Your Details</h2>
       <div class="form-group">
         <label>Full Name</label>
-        <input type="text" id="name" placeholder="e.g. Rahul Patil" oninput="updatePreview()">
+        <input type="text" id="name" placeholder="e.g. Mousmi Joshi">
       </div>
       <div class="form-group">
         <label>Email</label>
-        <input type="email" id="email" placeholder="e.g. rahul@email.com" oninput="updatePreview()">
+        <input type="email" id="email" placeholder="e.g. mousmi@email.com">
       </div>
       <div class="form-group">
         <label>Phone Number</label>
-        <input type="text" id="phone" placeholder="e.g. 9876543210" oninput="updatePreview()">
+        <input type="text" id="phone" placeholder="e.g. 9876543210">
       </div>
       <div class="form-group">
         <label>Location</label>
-        <input type="text" id="location" placeholder="e.g. Nashik, Maharashtra" oninput="updatePreview()">
+        <input type="text" id="location" placeholder="e.g. Nashik, Maharashtra">
       </div>
       <div class="form-group">
         <label>About Me</label>
-        <textarea id="about" rows="3" placeholder="Write 2-3 lines about yourself..." oninput="updatePreview()"></textarea>
+        <textarea id="about" rows="3" placeholder="Write 2-3 lines about yourself..."></textarea>
       </div>
       <div class="form-group">
         <label>Education</label>
-        <input type="text" id="education" placeholder="e.g. B.Sc Computer Science, Pune University" oninput="updatePreview()">
+        <input type="text" id="education" placeholder="e.g. Diploma Computer Engineering">
       </div>
       <div class="form-group">
         <label>Skills (comma separated)</label>
-        <input type="text" id="skills" placeholder="e.g. HTML, CSS, Python, MS Excel" oninput="updatePreview()">
+        <input type="text" id="skills" placeholder="e.g. HTML, CSS, Python">
       </div>
       <div class="form-group">
         <label>Experience / Projects</label>
-        <textarea id="experience" rows="3" placeholder="e.g. Built a website for local school..." oninput="updatePreview()"></textarea>
+        <textarea id="experience" rows="3" placeholder="e.g. Built GramaDharini website..."></textarea>
       </div>
       <div class="form-group">
         <label>Languages Known</label>
-        <input type="text" id="languages" placeholder="e.g. Marathi, Hindi, English" oninput="updatePreview()">
+        <input type="text" id="languages" placeholder="e.g. Marathi, Hindi, English">
       </div>
-      <button class="download-btn" onclick="downloadResume()">⬇️ Download Resume as PDF</button>
+      <button class="download-btn" id="downloadBtn">
+        ⬇️ Download Resume as PDF
+      </button>
     </div>
 
-    <div class="resume-preview" id="resumePreview">
+    <div class="resume-preview">
       <div class="preview-box" id="previewBox">
         <div class="preview-header">
           <h1 id="prevName">Your Name</h1>
-          <p id="prevContact">email@example.com | 9876543210 | Location</p>
+          <p id="prevContact">email | phone | location</p>
         </div>
         <div class="preview-section">
           <h3>About Me</h3>
@@ -101,25 +103,83 @@
     <p>© 2025 GramaDharini – ग्रामधारिणी | Empowering Rural Students</p>
   </footer>
 
+  <!-- All scripts at bottom -->
   <script>
-    function updatePreview() {
-      document.getElementById('prevName').innerText = document.getElementById('name').value || 'Your Name';
-      document.getElementById('prevContact').innerText =
-        (document.getElementById('email').value || 'email@example.com') + ' | ' +
-        (document.getElementById('phone').value || '9876543210') + ' | ' +
-        (document.getElementById('location').value || 'Location');
-      document.getElementById('prevAbout').innerText = document.getElementById('about').value || 'Your summary will appear here...';
-      document.getElementById('prevEducation').innerText = document.getElementById('education').value || 'Your education will appear here...';
-      document.getElementById('prevExperience').innerText = document.getElementById('experience').value || 'Your experience will appear here...';
-      document.getElementById('prevLanguages').innerText = document.getElementById('languages').value || 'Your languages will appear here...';
-      const skills = document.getElementById('skills').value.split(',').filter(s => s.trim());
-      const skillsDiv = document.getElementById('prevSkills');
-      skillsDiv.innerHTML = skills.map(s => `<span class="skill-badge">${s.trim()}</span>`).join('');
-    }
-    function downloadResume() {
-      window.print();
-    }
+    // Live preview
+    document.querySelectorAll('input, textarea').forEach(el => {
+      el.addEventListener('input', function() {
+        document.getElementById('prevName').innerText = document.getElementById('name').value || 'Your Name';
+        document.getElementById('prevContact').innerText =
+          (document.getElementById('email').value || 'email') + ' | ' +
+          (document.getElementById('phone').value || 'phone') + ' | ' +
+          (document.getElementById('location').value || 'location');
+        document.getElementById('prevAbout').innerText = document.getElementById('about').value || 'Your summary...';
+        document.getElementById('prevEducation').innerText = document.getElementById('education').value || 'Your education...';
+        document.getElementById('prevExperience').innerText = document.getElementById('experience').value || 'Your experience...';
+        document.getElementById('prevLanguages').innerText = document.getElementById('languages').value || 'Your languages...';
+        const skills = document.getElementById('skills').value.split(',').filter(s => s.trim());
+        document.getElementById('prevSkills').innerHTML = skills.map(s => `<span class="skill-badge">${s.trim()}</span>`).join('');
+      });
+    });
+
+    // Download button
+    document.getElementById('downloadBtn').addEventListener('click', async function() {
+      const name = document.getElementById('name').value.trim();
+
+      if (!name) {
+        alert('Please enter your name first!');
+        return;
+      }
+
+      const btn = document.getElementById('downloadBtn');
+      btn.innerText = '⏳ Generating PDF...';
+      btn.disabled = true;
+
+      const data = {
+        name:       name,
+        email:      document.getElementById('email').value,
+        phone:      document.getElementById('phone').value,
+        location:   document.getElementById('location').value,
+        about:      document.getElementById('about').value,
+        education:  document.getElementById('education').value,
+        skills:     document.getElementById('skills').value,
+        experience: document.getElementById('experience').value,
+        languages:  document.getElementById('languages').value
+      };
+
+      try {
+        const response = await fetch('http://127.0.0.1:5000/api/resume', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = name.replace(/ /g, '_') + '_Resume.pdf';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+
+        btn.innerText = '✅ PDF Downloaded!';
+        setTimeout(() => {
+          btn.innerText = '⬇️ Download Resume as PDF';
+          btn.disabled = false;
+        }, 2000);
+
+      } catch(err) {
+        console.error(err);
+        alert('Error! Make sure Python backend is running.\nCommand: python app.py');
+        btn.innerText = '⬇️ Download Resume as PDF';
+        btn.disabled = false;
+      }
+    });
   </script>
+
   <script type="module" src="js/js/app.js"></script>
+
 </body>
 </html>
